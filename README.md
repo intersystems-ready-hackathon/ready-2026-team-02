@@ -1,4 +1,4 @@
-# TEAM 01 - [ Name of Project ] 
+# TEAM 02 - [ Name of Project ] 
 
 ## Project Summary 
 
