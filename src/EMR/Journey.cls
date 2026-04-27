@@ -58,9 +58,9 @@ Property IsActive As %Boolean [ InitialExpression = 1 ];
 /// Optional ranking score when multiple journeys match
 Property Priority As %Integer [ InitialExpression = 100 ];
 
-/// Creation timestamp in logical %TimeStamp format.
-Property CreatedOn As %TimeStamp [ InitialExpression = {$ZDATETIMEH($HOROLOG,3)} ];
+// Property CreatedOn As %TimeStamp [ InitialExpression = {$ZDATETIMEH($HOROLOG,3)} ];
 
+/// Creation timestamp in logical %TimeStamp format.
 /// Last update timestamp. Set by application logic when records are edited.
 Property UpdatedOn As %TimeStamp;
 
