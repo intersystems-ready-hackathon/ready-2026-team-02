@@ -1,3 +1,5 @@
 **/.DS_Store
 iris-main.log
 .git
+webapp/.next
+webapp/node_modules

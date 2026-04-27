@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+
+FROM alpine:3.22
+
+RUN addgroup -S webapp && adduser -S -D -H -G webapp webapp
+
+WORKDIR /srv/webapp
+
+COPY webapp/out/ ./
+
+EXPOSE 8080
+
+USER webapp
+
+CMD ["busybox", "httpd", "-f", "-p", "8080", "-h", "/srv/webapp"]
