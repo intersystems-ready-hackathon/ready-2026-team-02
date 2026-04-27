@@ -2,7 +2,7 @@
 
 ## Overview
 
-`Sample.EMR.PatientJSONExporter` exports one patient or multiple patients as JSON, including related clinical data:
+`EMR.PatientJSONExporter` exports one patient or multiple patients as JSON, including related clinical data:
 
 - Problems
 - Diagnoses
@@ -11,7 +11,7 @@
 
 ## Class
 
-`Sample.EMR.PatientJSONExporter`
+`EMR.PatientJSONExporter`
 
 ## Available Methods
 
@@ -20,7 +20,7 @@
 Returns one patient payload by internal patient ID.
 
 ```objectscript
-Write ##class(Sample.EMR.PatientJSONExporter).ExportPatient(1)
+Write ##class(EMR.PatientJSONExporter).ExportPatient(1)
 ```
 
 Signature:
@@ -34,7 +34,7 @@ ClassMethod ExportPatient(patientID As %Integer) As %String
 Same as `ExportPatient`, but pretty-printed JSON.
 
 ```objectscript
-Write ##class(Sample.EMR.PatientJSONExporter).ExportPatientFormatted(1)
+Write ##class(EMR.PatientJSONExporter).ExportPatientFormatted(1)
 ```
 
 Signature:
@@ -48,7 +48,7 @@ ClassMethod ExportPatientFormatted(patientID As %Integer) As %String
 Returns one patient payload by MRN.
 
 ```objectscript
-Write ##class(Sample.EMR.PatientJSONExporter).ExportPatientByMRN("MRN-000001")
+Write ##class(EMR.PatientJSONExporter).ExportPatientByMRN("MRN-000001")
 ```
 
 Signature:
@@ -62,7 +62,7 @@ ClassMethod ExportPatientByMRN(mrn As %String) As %String
 Same as `ExportPatientByMRN`, but pretty-printed JSON.
 
 ```objectscript
-Write ##class(Sample.EMR.PatientJSONExporter).ExportPatientByMRNFormatted("MRN-000001")
+Write ##class(EMR.PatientJSONExporter).ExportPatientByMRNFormatted("MRN-000001")
 ```
 
 Signature:
@@ -76,7 +76,7 @@ ClassMethod ExportPatientByMRNFormatted(mrn As %String) As %String
 Returns all patients as a JSON array.
 
 ```objectscript
-Write ##class(Sample.EMR.PatientJSONExporter).ExportAllPatients()
+Write ##class(EMR.PatientJSONExporter).ExportAllPatients()
 ```
 
 Signature:
