@@ -18,6 +18,16 @@
             Recurse="1"
             MatchRoles=":%All"
             DispatchClass="Rest.VIF"/>
+      <WebApplication Url="/csp/ui"
+            Path="${cspdir}ui/"
+            ServeFiles="1"
+            CookiePath="/csp/ui/demo/"
+            PasswordAuthEnabled="0"
+            UnauthenticatedEnabled="1"
+            AuthenticationMethods="64" 
+            Recurse="1"
+            MatchRoles=":%All"/>
+      <FileCopy Name="web/" Target="${cspdir}ui/"/>
     </Module>
   </Document>
 </Export>
