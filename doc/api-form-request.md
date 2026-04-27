@@ -86,3 +86,8 @@ The endpoint returns a care plan as an array containing one or more care plan ob
 ## Workflow Steps
 
 ![Workflow Diagram](../misc/img/workflow.jpg)
+
+
+## Endpoint
+
+POST http://localhost:59773/csp/demo/vif
