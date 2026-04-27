@@ -4,9 +4,14 @@ import { FormEvent, SVGProps, useMemo, useState } from "react";
 
 import {
   CarePlanRequest,
+  CarePlanResponse,
   exampleCarePlanRequest,
   exampleCarePlanResponses,
 } from "@/lib/care-plan-data";
+import {
+  carePlanApiEndpoint,
+  useMockCarePlanResponse,
+} from "@/lib/care-plan-config";
 
 type CarePlanFormState = Omit<
   CarePlanRequest,
@@ -32,6 +37,8 @@ type IconName =
   | "sparkle"
   | "user"
   | "workflow";
+
+type RequestStatus = "idle" | "loading" | "success" | "error" | "mock";
 
 const initialFormState: CarePlanFormState = {
   ...exampleCarePlanRequest,
@@ -76,9 +83,16 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
 
 export function CarePlanForm() {
   const [form, setForm] = useState<CarePlanFormState>(initialFormState);
-  const [hasGenerated, setHasGenerated] = useState(true);
+  const [carePlan, setCarePlan] = useState<CarePlanResponse | null>(
+    useMockCarePlanResponse ? exampleCarePlanResponses[0] : null,
+  );
+  const [requestStatus, setRequestStatus] = useState<RequestStatus>(
+    useMockCarePlanResponse ? "mock" : "idle",
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-  const carePlan = exampleCarePlanResponses[0];
+  const isLoading = requestStatus === "loading";
   const patientName = useMemo(
     () => [form.firstName, form.lastName].filter(Boolean).join(" "),
     [form.firstName, form.lastName],
@@ -89,12 +103,50 @@ export function CarePlanForm() {
     value: CarePlanFormState[K],
   ) {
     setForm((current) => ({ ...current, [field]: value }));
-    setHasGenerated(false);
+    setErrorMessage(null);
+    setRequestStatus((current) => (current === "error" ? "idle" : current));
+    setHasPendingChanges(true);
   }
 
-  function handleGenerate(event: FormEvent<HTMLFormElement>) {
+  async function handleGenerate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setHasGenerated(true);
+    setErrorMessage(null);
+    setHasPendingChanges(false);
+
+    if (useMockCarePlanResponse) {
+      setCarePlan(exampleCarePlanResponses[0]);
+      setRequestStatus("mock");
+      return;
+    }
+
+    setRequestStatus("loading");
+
+    try {
+      const response = await fetch(carePlanApiEndpoint, {
+        body: JSON.stringify(toCarePlanRequest(form)),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`);
+      }
+
+      const responseBody: unknown = await response.json();
+      const nextCarePlan = readCarePlanResponse(responseBody);
+
+      setCarePlan(nextCarePlan);
+      setRequestStatus("success");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "The backend request failed.",
+      );
+      setRequestStatus("error");
+    }
   }
 
   return (
@@ -112,11 +164,12 @@ export function CarePlanForm() {
           </div>
           <button
             form="fertility-assessment"
-            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-[#070b16]"
+            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-[#070b16] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isLoading}
             type="submit"
           >
             <Icon name="sparkle" className="size-4" />
-            Generate Care Plan
+            {isLoading ? "Generating..." : "Generate Care Plan"}
           </button>
         </header>
 
@@ -124,15 +177,15 @@ export function CarePlanForm() {
           <div>
             <div className="mb-7">
               <p className="mb-2 text-sm font-medium text-violet-300">
-                Static assessment prototype
+                Connected assessment
               </p>
               <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Fertility Assessment
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
                 Please provide the following information to help us create your
-                personalized care plan. The prototype is loaded with the
-                documented JSON sample until the API is ready.
+                personalized care plan. Submissions are sent to the configured
+                backend unless mock mode is enabled.
               </p>
             </div>
 
@@ -217,7 +270,7 @@ export function CarePlanForm() {
                       onChange={(event) =>
                         updateField(
                           "malePartnerMarried",
-                          event.target.value === "true",
+                          toOptionalBoolean(event.target.value),
                         )
                       }
                       className={inputClassName}
@@ -360,11 +413,12 @@ export function CarePlanForm() {
               </FormSection>
 
               <button
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-slate-950"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isLoading}
                 type="submit"
               >
                 <Icon name="document" className="size-4" />
-                Generate Care Plan
+                {isLoading ? "Generating..." : "Generate Care Plan"}
               </button>
               <p className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
                 <Icon name="privacy" className="size-4" />
@@ -386,39 +440,72 @@ export function CarePlanForm() {
                 {patientName ? ` for ${patientName}` : ""}.
               </p>
               <p className="mt-2 text-xs text-slate-500">
-                {hasGenerated
-                  ? "Showing the documented example response."
-                  : "Generate again to refresh the preview from the local mock response."}
+                {useMockCarePlanResponse
+                  ? "Mock data mode is active by configuration."
+                  : `Posting to ${carePlanApiEndpoint}.`}
               </p>
+              {hasPendingChanges && carePlan ? (
+                <p className="mt-2 text-xs text-amber-200">
+                  The form has changed. Generate again to refresh this preview.
+                </p>
+              ) : null}
             </div>
 
-            <div className="space-y-4">
-              {previewItems.map((item) => (
-                <PreviewCard
-                  key={item.key}
-                  icon={item.icon}
-                  title={item.title}
-                  body={carePlan[item.key]}
-                />
-              ))}
+            {useMockCarePlanResponse ? (
+              <StatusBanner tone="warning">
+                Mock data mode is active. The backend request is skipped by
+                configuration.
+              </StatusBanner>
+            ) : null}
 
-              <div className="rounded-2xl border border-emerald-300/10 bg-slate-800/70 p-5">
-                <div className="mb-4 flex items-center gap-4">
-                  <span className="flex size-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
-                    <span className="text-2xl font-semibold">₹</span>
-                  </span>
-                  <div>
-                    <h3 className="font-semibold text-white">Cost Summary</h3>
-                    <p className="text-xs text-slate-400">Estimated total</p>
+            {requestStatus === "loading" ? (
+              <StatusBanner tone="info">
+                Sending the assessment JSON to the configured backend.
+              </StatusBanner>
+            ) : null}
+
+            {requestStatus === "error" ? (
+              <StatusBanner tone="error">
+                Backend request failed: {errorMessage}. Mock data was not used
+                automatically.
+              </StatusBanner>
+            ) : null}
+
+            <div className="space-y-4">
+              {carePlan ? (
+                <>
+                  {previewItems.map((item) => (
+                    <PreviewCard
+                      key={item.key}
+                      icon={item.icon}
+                      title={item.title}
+                      body={carePlan[item.key]}
+                    />
+                  ))}
+
+                  <div className="rounded-2xl border border-emerald-300/10 bg-slate-800/70 p-5">
+                    <div className="mb-4 flex items-center gap-4">
+                      <span className="flex size-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+                        <span className="text-2xl font-semibold">₹</span>
+                      </span>
+                      <div>
+                        <h3 className="font-semibold text-white">Cost Summary</h3>
+                        <p className="text-xs text-slate-400">Estimated total</p>
+                      </div>
+                    </div>
+                    <p className="text-3xl font-bold tracking-tight text-emerald-300">
+                      {currencyFormatter.format(carePlan.costSummary)}
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                      Estimated total cost of the recommended care plan.
+                    </p>
                   </div>
+                </>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-slate-800/40 p-5 text-sm leading-6 text-slate-300">
+                  Generate a care plan to display the backend response here.
                 </div>
-                <p className="text-3xl font-bold tracking-tight text-emerald-300">
-                  {currencyFormatter.format(carePlan.costSummary)}
-                </p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  Estimated total cost of the recommended care plan.
-                </p>
-              </div>
+              )}
             </div>
 
             <p className="mt-6 flex items-start gap-2 text-xs leading-5 text-slate-500">
@@ -430,6 +517,90 @@ export function CarePlanForm() {
         </section>
       </div>
     </main>
+  );
+}
+
+function toCarePlanRequest(form: CarePlanFormState): CarePlanRequest {
+  return {
+    age: Number(form.age),
+    amh: Number(form.amh),
+    bmi: Number(form.bmi),
+    budget: Number(form.budget),
+    firstName: form.firstName,
+    fsh: Number(form.fsh),
+    insurerName: form.insurerName,
+    lastName: form.lastName,
+    malePartner: form.malePartner,
+    malePartnerAge: form.malePartner
+      ? toOptionalNumber(form.malePartnerAge)
+      : null,
+    malePartnerMarried: form.malePartner ? form.malePartnerMarried : null,
+    malePartnerSemenAnalysis: form.malePartner
+      ? form.malePartnerSemenAnalysis || null
+      : null,
+    policyNumber: Number(form.policyNumber),
+    previousIvf: form.previousIvf,
+    symptom: form.symptom,
+  };
+}
+
+function toOptionalBoolean(value: string) {
+  if (value === "") {
+    return null;
+  }
+
+  return value === "true";
+}
+
+function toOptionalNumber(value: string) {
+  return value === "" ? null : Number(value);
+}
+
+function readCarePlanResponse(value: unknown): CarePlanResponse {
+  if (!Array.isArray(value) || !isCarePlanResponse(value[0])) {
+    throw new Error(
+      "Backend response did not match the expected care-plan array.",
+    );
+  }
+
+  return value[0];
+}
+
+function isCarePlanResponse(value: unknown): value is CarePlanResponse {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<Record<keyof CarePlanResponse, unknown>>;
+
+  return (
+    typeof candidate.journeyGoal === "string" &&
+    typeof candidate.journeySummary === "string" &&
+    typeof candidate.workflowSummary === "string" &&
+    typeof candidate.timelineSummary === "string" &&
+    typeof candidate.costSummary === "number"
+  );
+}
+
+function StatusBanner({
+  children,
+  tone,
+}: {
+  children: React.ReactNode;
+  tone: "error" | "info" | "warning";
+}) {
+  const toneClassName = {
+    error: "border-red-300/20 bg-red-500/10 text-red-100",
+    info: "border-sky-300/20 bg-sky-500/10 text-sky-100",
+    warning: "border-amber-300/20 bg-amber-500/10 text-amber-100",
+  }[tone];
+
+  return (
+    <div
+      className={`mb-4 rounded-2xl border p-4 text-sm leading-6 ${toneClassName}`}
+    >
+      {children}
+    </div>
   );
 }
 
