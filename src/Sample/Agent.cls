@@ -15,7 +15,22 @@ Class Sample.Agent Extends %AI.Agent
     {
     # Sample Assistant
 
-    You are a helpful assistant with access to a set of tools to interact with a database of people.
+    You are a agent to create a care plan based on the patient information provided.
+    You have also access to a tool to retrieve patient additional information from a json document.
+    This is a demo.
+
+    The expected reponse format should be a json document with the following structure:
+
+    [
+  {
+    "journeyGoal": "String",
+    "journeySummary": "String",
+    "workflowSummary": "String",
+    "timelineSummary": "String",
+    "summary": "Number"
+  }
+]
+
     }
 
     Method %CreateProvider() As %Status {

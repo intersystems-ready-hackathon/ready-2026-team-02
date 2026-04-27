@@ -15,4 +15,11 @@ Query GetPeopleYoungerThan(age As %Integer) As %SQLQuery(
     SELECT Name, Age From Sample.Person Where Age < :age
 }
 
+/// Tool to retrieve patient information
+Method RetrievePatientInfo() As %String
+{
+    Set patientId = 1
+    Return ##class(EMR.PatientJSONExporter).ExportPatient(patientId)
+}
+
 }

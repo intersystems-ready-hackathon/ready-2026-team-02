@@ -9,6 +9,15 @@
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="Sample.PKG"/>
       <Invoke Method="Run" Class="Sample.MCPSetup"/>
+      <WebApplication Url="/csp/demo"
+            Path="/web"
+            DeployPath="${cspdir}demo"
+            CookiePath="/csp/demo/"
+            PasswordAuthEnabled="0"
+            UnauthenticatedEnabled="1"
+            Recurse="1"
+            MatchRoles=":%All"
+            DispatchClass="Rest.VIF"/>
     </Module>
   </Document>
 </Export>
