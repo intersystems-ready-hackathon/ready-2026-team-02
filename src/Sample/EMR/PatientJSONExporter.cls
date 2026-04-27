@@ -30,6 +30,33 @@ ClassMethod ExportPatient(patientID As %Integer) As %String
     Return json.%ToJSON()
 }
 
+/// Export a patient by MRN (Medical Record Number) and all related data to JSON
+ClassMethod ExportPatientByMRN(mrn As %String) As %String
+{
+    Set patientID = ""
+    
+    Set rs = ##class(%SQL.Statement).%ExecDirect(
+        , "SELECT ID FROM Sample_EMR.Patient WHERE MRN = ?",
+        mrn
+    )
+    
+    If rs.%Next() {
+        Set patientID = rs.%Get("ID")
+    } Else {
+        Return "{""error"":""Patient with MRN '" _ mrn _ "' not found""}"
+    }
+    
+    Return ..ExportPatient(patientID)
+}
+
+/// Export a patient by MRN with formatted JSON
+ClassMethod ExportPatientByMRNFormatted(mrn As %String) As %String
+{
+    Set jsonStr = ..ExportPatientByMRN(mrn)
+    Set json = ##class(%Library.DynamicObject).%FromJSON(jsonStr)
+    Return json.%ToJSON(, , 2)
+}
+
 /// Export all patients to JSON array
 ClassMethod ExportAllPatients() As %String
 {
