@@ -82,3 +82,7 @@ The endpoint returns a care plan as an array containing one or more care plan ob
 - Numeric medical values such as `bmi`, `fsh`, and `amh` may contain decimal values.
 - `policyNumber` is represented as a number in this format.
 - The response is always an array, even if only one care plan is returned.
+
+## Workflow Steps
+
+![Workflow Diagram](../misc/img/workflow.jpg)
