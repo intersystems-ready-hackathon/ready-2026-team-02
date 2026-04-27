@@ -130,7 +130,7 @@ ClassMethod AddJourneyData(json As %Library.DynamicObject, journey As EMR.Journe
 
     Set json.isActive = journey.IsActive
     Set json.priority = journey.Priority
-    Set json.createdOn = journey.CreatedOn
+    //Set json.createdOn = journey.CreatedOn
     Set json.updatedOn = journey.UpdatedOn
 }
 
