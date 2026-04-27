@@ -1,6 +1,6 @@
-# Patient Intake JSON Format
+# Care Plan Request and Response Format
 
-## Schema
+## Request Schema
 
 ```json
 {
@@ -24,9 +24,7 @@
 
 Partner-related fields are nullable because they are only required when `malePartner` is `true`.
 
-## Example JSON
-
-### With Male Partner
+## Example Request JSON
 
 ```json
 {
@@ -48,26 +46,34 @@ Partner-related fields are nullable because they are only required when `malePar
 }
 ```
 
-### Without Male Partner
+## Response Schema
+
+The endpoint returns a care plan as an array containing one or more care plan objects.
 
 ```json
-{
-  "firstName": "Laura",
-  "lastName": "Schmidt",
-  "age": 31,
-  "malePartner": false,
-  "malePartnerAge": null,
-  "malePartnerMarried": null,
-  "malePartnerSemenAnalysis": null,
-  "symptom": "Endometriosis",
-  "bmi": 21.9,
-  "fsh": 6.5,
-  "amh": 3.0,
-  "previousIvf": true,
-  "insurerName": "MediSecure",
-  "policyNumber": 987654321,
-  "budget": 7500
-}
+[
+  {
+    "journeyGoal": "String",
+    "journeySummary": "String",
+    "workflowSummary": "String",
+    "timelineSummary": "String",
+    "summary": "Number"
+  }
+]
+```
+
+## Example Response JSON
+
+```json
+[
+  {
+    "journeyGoal": "Achieve a successful fertility treatment outcome based on the patient's medical profile and available budget.",
+    "journeySummary": "The patient will start with a fertility specialist consultation, followed by diagnostic checks and an individualized treatment recommendation.",
+    "workflowSummary": "The workflow includes medical review, hormone value assessment, partner-related analysis if applicable, insurance validation, and care plan creation.",
+    "timelineSummary": "The initial assessment and diagnostics are expected within the first two weeks, followed by treatment planning in week three.",
+    "costSummary": 190719
+  }
+]
 ```
 
 ## Field Notes
@@ -75,3 +81,4 @@ Partner-related fields are nullable because they are only required when `malePar
 - `malePartnerSemenAnalysis` contains the file content as a Base64-encoded string.
 - Numeric medical values such as `bmi`, `fsh`, and `amh` may contain decimal values.
 - `policyNumber` is represented as a number in this format.
+- The response is always an array, even if only one care plan is returned.
