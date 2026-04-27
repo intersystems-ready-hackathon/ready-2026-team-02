@@ -8,6 +8,9 @@
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="Sample.PKG"/>
+      <Resource Name="EMR.PKG"/>
+      <Resource Name="REST.PKG"/>
+      
       <Invoke Method="Run" Class="Sample.MCPSetup"/>
       <WebApplication Url="/csp/demo"
             Path="/web"
