@@ -32,14 +32,13 @@ ClassMethod Test() As %Status
 
         Set agent = ##class(Sample.Agent).%New()
         $$$TOE(sc, agent.%Init())
-        w !,"init done"
         Set session = agent.CreateSession()
-        w !,"session created"
         // This requires using both tools defined in Sample.Tools and packaged in Sample.ToolSet
         Set request = "Please create the care plan for the following patient: " _ patientform.%ToJSON() _ " use the tools available retrieve addition information."
-        w !,"request created"
         Set response = agent.Chat(session, request)
-        w !,!, "Response: ", response.Content
+        w !,!, "Response: "
+        Set formatter = ##class(%JSON.Formatter).%New()
+        Write formatter.Format(response.Content)
     }
     Catch ex {
         Set sc=ex.AsStatus()
