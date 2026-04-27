@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, SVGProps, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, SVGProps, useMemo, useState } from "react";
 
 import {
   CarePlanRequest,
@@ -90,6 +90,9 @@ export function CarePlanForm() {
     useMockCarePlanResponse ? "mock" : "idle",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [semenAnalysisUploadError, setSemenAnalysisUploadError] = useState<
+    string | null
+  >(null);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   const isLoading = requestStatus === "loading";
@@ -106,6 +109,36 @@ export function CarePlanForm() {
     setErrorMessage(null);
     setRequestStatus((current) => (current === "error" ? "idle" : current));
     setHasPendingChanges(true);
+  }
+
+  async function handleSemenAnalysisUpload(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    setSemenAnalysisUploadError(null);
+
+    if (!file) {
+      updateField("malePartnerSemenAnalysis", "");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      updateField("malePartnerSemenAnalysis", "");
+      setSemenAnalysisUploadError(
+        "Please upload an image for the semen analysis.",
+      );
+      return;
+    }
+
+    try {
+      const base64Content = await readFileAsBase64(file);
+      updateField("malePartnerSemenAnalysis", base64Content);
+    } catch {
+      updateField("malePartnerSemenAnalysis", "");
+      setSemenAnalysisUploadError(
+        "Could not read the uploaded semen analysis image.",
+      );
+    }
   }
 
   async function handleGenerate(event: FormEvent<HTMLFormElement>) {
@@ -284,20 +317,27 @@ export function CarePlanForm() {
                 </div>
                 <Field
                   label="Male Partner Semen Analysis"
-                  hint="Base64 file content or a short note for the prototype."
+                  hint={
+                    form.malePartnerSemenAnalysis
+                      ? "Image ready. It will be sent as base64 in the JSON payload."
+                      : "Upload an image. It will be sent as base64 in the JSON payload."
+                  }
                   htmlFor="semenAnalysis"
                   className="mt-4"
                 >
                   <input
                     id="semenAnalysis"
-                    value={form.malePartnerSemenAnalysis ?? ""}
-                    onChange={(event) =>
-                      updateField("malePartnerSemenAnalysis", event.target.value)
-                    }
-                    placeholder="Enter semen analysis results"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSemenAnalysisUpload}
                     className={inputClassName}
                     disabled={!form.malePartner}
                   />
+                  {semenAnalysisUploadError ? (
+                    <p className="mt-2 text-xs text-red-200">
+                      {semenAnalysisUploadError}
+                    </p>
+                  ) : null}
                 </Field>
               </FormSection>
 
@@ -554,6 +594,23 @@ function toOptionalBoolean(value: string) {
 
 function toOptionalNumber(value: string) {
   return value === "" ? null : Number(value);
+}
+
+function readFileAsBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error("FileReader returned an unexpected result."));
+        return;
+      }
+
+      resolve(reader.result.split(",")[1] ?? "");
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 function readCarePlanResponse(value: unknown): CarePlanResponse {
