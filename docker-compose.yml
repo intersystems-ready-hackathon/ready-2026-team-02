@@ -15,3 +15,14 @@ services:
       - 8080:8080
     volumes:
       - ./:/home/irisowner/dev
+
+  webapp:
+    build:
+      context: webapp
+      dockerfile: ./webapp/Dockerfile.webapp
+    container_name: webapp
+    restart: always
+    ports:
+      - 3000:8080
+    depends_on:
+      - iris

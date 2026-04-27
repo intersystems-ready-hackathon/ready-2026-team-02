@@ -22,4 +22,10 @@ Method RetrievePatientInfo() As %String
     Return ##class(EMR.PatientJSONExporter).ExportPatient(patientId)
 }
 
+/// Tool to retrieve journey information
+Method RetrieveJourneyInfo() As %String
+{
+    Return ##class(Sample.JourneyJSONExporter).ExportAllJourneys()
+}
+
 }
